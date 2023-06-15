@@ -1,0 +1,28 @@
+#!/bin/sh
+
+printf "$*\n"
+log=/var/log/devpub-mount/03-devpub-mount
+mkdir -p $(dirname $log)
+printf "$*\n" >> $log
+
+if [ $1 = "device-attach" ]; then
+    device=$2
+    case $device in
+    cd*)
+	/usr/pkg/sbin/devpub-mount $device
+	;;
+    
+    sd*)
+	for partition in /dev/$device[a-z]*; do
+	    /usr/pkg/sbin/devpub-mount $partition >/dev/null 2>&1 &
+	done
+	;;
+    
+    *)
+	# Ignore
+	;;
+
+    esac
+elif [ $1 = "device-detach" ]; then
+    rm -f $log
+fi
