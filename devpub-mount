@@ -10,7 +10,7 @@
 #       normally invoked by /libexec/devpubd-hooks/03-devpub-mount,
 #       which is run by the devpubd(8) service upon creation of
 #       a new device node such as /dev/sd0.  This typically occurs
-#       when a USB drive is inserted, forexample.
+#       when a USB drive is inserted, for example.
 #
 #       The device name should contain a filesystem recognized
 #       by NetBSD or by fusefs, such as EXFAT, FAT32, FAS16, NTFS,
@@ -19,7 +19,8 @@
 #       The mount point for a device is /media/device-name, e.g.
 #       /dev/sd0e is mounted on /media/sd0e.
 #
-#       The configuration file /usr/pkg/etc can be used to control
+#       The configuration file /usr/pkg/etc/devpub-mount.conf
+#       can be used to control
 #       ownership and permissions on the mount point, and the program
 #       invoked upon a successful mount.  Defaults are shown below.
 #       
@@ -45,6 +46,7 @@
 #
 #   Files:
 #       /usr/pkg/etc/devpub-mount.conf
+#       /libexec/devpubd-hooks/03-devpub-mount
 #
 #   See also:
 #       devpubd(8), mount(8), qmediamanager(1), npmount(1)
@@ -63,10 +65,7 @@ usage()
 
 ##########################################################################
 #   Function description:
-#       
-#   Arguments:
-#       
-#   Returns:
+#       Launch chosen media manager program on the local X11 display
 #       
 #   History:
 #   Date        Name        Modification
