@@ -5,19 +5,49 @@
 #       devpub-mount [/dev/]partition
 #
 #   Description:
+#       .B devpub-mount
+#       is a script for mounting external media on NetBSD.  It is
+#       normally invoked by /libexec/devpubd-hooks/03-devpub-mount,
+#       which is run by the devpubd(8) service upon creation of
+#       a new device node such as /dev/sd0.  This typically occurs
+#       when a USB drive is inserted, forexample.
+#
+#       The device name should contain a filesystem recognized
+#       by NetBSD or by fusefs, such as EXFAT, FAT32, FAS16, NTFS,
+#       ISO 9660 (CDs), UDF (DVDs), of FFS (NetBSD native).
+#
+#       The mount point for a device is /media/device-name, e.g.
+#       /dev/sd0e is mounted on /media/sd0e.
+#
+#       The configuration file /usr/pkg/etc can be used to control
+#       ownership and permissions on the mount point, and the program
+#       invoked upon a successful mount.  Defaults are shown below.
 #       
+#       .nf
+#       .na
+#       MEDIA_MANAGER=/usr/pkg/bin/qmediamanager
+#       GROUP=operator
+#       MODE=775
+#       .ad
+#       .di
+#
+#       The auto-automount-setup(1) script, part of sysutils/auto-admin
+#       will configure a NetBSD system to use devpub-mount.
 #       
 #   Arguments:
+#       device  Name of device node, with or without /dev/ prefix
 #       
 #   Returns:
+#       0 upon successful mount, non-zero error codes otherwise
 #
 #   Examples:
+#       devpub-mount sd0e
 #
 #   Files:
-#
-#   Environment:
+#       /usr/pkg/etc/devpub-mount.conf
 #
 #   See also:
+#       devpubd(8), mount(8), qmediamanager(1), npmount(1)
 #       
 #   History:
 #   Date        Name        Modification
