@@ -9,7 +9,7 @@ if [ $1 = "device-attach" ]; then
     device=$2
     case $device in
     cd*)
-	/usr/pkg/sbin/devpub-mount $device
+	/usr/pkg/sbin/devpub-mount $device &
 	;;
     
     sd*)
