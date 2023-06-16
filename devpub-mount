@@ -91,6 +91,12 @@ try_mount()
     elif /sbin/mount_cd9660 $partition $mount_point; then
 	printf "Mounted cd9660.\n" >> $log
 	media_manager $mount_point
+    elif /sbin/mount_udf $partition $mount_point; then
+	printf "Mounted UDF.\n" >> $log
+	media_manager $mount_point
+    elif /sbin/mount_ntfs $partition $mount_point; then
+	printf "Mounted NTFS.\n" >> $log
+	media_manager $mount_point
     elif /sbin/mount $partition $mount_point; then
 	printf "Mounted FFS.\n" >> $log
 	media_manager $mount_point
