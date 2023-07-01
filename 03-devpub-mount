@@ -16,7 +16,8 @@ if [ $1 = "device-attach" ]; then
 	for partition in /dev/$device[a-z]*; do
 	    if ! fstyp $partition 2>&1 | fgrep -q 'Device not configured'; then
 		# Allow members of operator to reformat the device
-		chmod g+w $partition
+		# and image the parent device
+		chmod g+w $partition ${partition%[a-z]}
 		/usr/pkg/sbin/devpub-mount $partition >/dev/null 2>&1 &
 	    fi
 	done
