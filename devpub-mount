@@ -74,16 +74,54 @@ usage()
 
 media_manager()
 {
-    : ${MEDIA_MANAGER:=qmediamanager}
-    DISPLAY_ID=$(ps -ax -p `pgrep bin/X` | fgrep bin/X | awk '{ print $6 }')
-    
+    if [ $# != 3 ]; then
+	printf "Usage: media_manager mount-point partition fs-type\n" >> /dev/stderr
+	exit 1
+    fi
+    mount_point=$1
+    device=$2
+    fs_type=$3
+
+    # This fails under SDDM:
+    # DISPLAY_ID=$(ps -ax -p `pgrep bin/X` | fgrep bin/X | awk '{ print $6 }')
+    # ps -axw -p `pgrep Xorg` | fgrep libexec/Xorg
+    # 1413  -  S    0:09.75 /usr/local/libexec/Xorg -nolisten tcp -auth /var/run/sddm/{f5f14042-f00a-4038-9de7-94f125def9a0} -background 
+    DISPLAY_ID=:0
+
     # Debug
-    # printf "DISPLAY_ID = $DISPLAY_ID\n" >> $log
+    printf "DISPLAY_ID = $DISPLAY_ID\n" >> $log
+
+    # Build command to run following mount
+    : ${MEDIA_MANAGER:="qmediamanager mount-point device fs-type"}
+    no_tabs=$(echo "$MEDIA_MANAGER" | tr '\t' ' ')
+    cmd=$(echo "$no_tabs" | cut -d ' ' -f 1)
+    for arg in $(echo "$no_tabs" | cut -d ' ' -f 2-); do
+	printf "arg = $arg\n"
+	case $arg in
+	mount-point)
+	    cmd="$cmd $mount_point"
+	    ;;
+	
+	device)
+	    cmd="$cmd $device"
+	    ;;
+	
+	fs-type)
+	    cmd="$cmd $fs_type"
+	    ;;
+	
+	*)
+	    cmd="$cmd $arg"
+	    ;;
+	esac
+    done
+    
+    printf "cmd = $cmd\n" >> $log
     
     # FIXME: Determine owner of :0
     display_users=$(ps aewwj | grep "DISPLAY=${DISPLAY_ID}" | awk '{ print $1 }' | sort -u)
     for user in $display_users; do
-	if su -l $user -c "env DISPLAY=$DISPLAY_ID $MEDIA_MANAGER $mount_point"; then
+	if su -l $user -c "env DISPLAY=$DISPLAY_ID $cmd"; then
 	    break;
 	fi
     done
@@ -107,28 +145,30 @@ try_mount()
     
     ##########################################################################
     #   Determining filesystem type if not straightforward.  The fstyp
-    #   command is extremely limited.  We simply try supported filesystems.
+    #   command is extremely limited.  We simply try supported filesystems
+    #   where fstyp cannot assist.
     ##########################################################################
     
     printf "$partition $mount_point\n" >> $log
-    if /usr/pkg/sbin/mount.exfat $partition $mount_point; then
-	printf "Mounted exfat.\n" >> $log
-	media_manager $mount_point
-    elif /sbin/mount_msdos $partition $mount_point; then
+    
+    if [ $(fstyp $partition) = msdosfs ] && /sbin/mount_msdos $partition $mount_point; then
 	printf "Mounted FAT.\n" >> $log
-	media_manager $mount_point
-    elif /sbin/mount_cd9660 $partition $mount_point; then
+	media_manager $mount_point $partition fat
+    elif [ $(fstyp $partition) = cd9660 ] && /sbin/mount_cd9660 $partition $mount_point; then
 	printf "Mounted cd9660.\n" >> $log
-	media_manager $mount_point
-    elif /sbin/mount_udf $partition $mount_point; then
-	printf "Mounted UDF.\n" >> $log
-	media_manager $mount_point
-    elif /sbin/mount_ntfs $partition $mount_point; then
+	media_manager $mount_point $partition cd9660
+    elif [ $(fstyp $partition) = ntfs ] && /sbin/mount_ntfs $partition $mount_point; then
 	printf "Mounted NTFS.\n" >> $log
-	media_manager $mount_point
+	media_manager $mount_point $partition ntfs
+    elif /usr/pkg/sbin/mount.exfat $partition $mount_point; then
+	printf "Mounted exfat.\n" >> $log
+	media_manager $mount_point $partition exfat
     elif /sbin/mount $partition $mount_point; then
 	printf "Mounted FFS.\n" >> $log
-	media_manager $mount_point
+	media_manager $mount_point $partition ffs
+    elif /sbin/mount_udf $partition $mount_point; then
+	printf "Mounted UDF.\n" >> $log
+	media_manager $mount_point $partition udf
     else
 	printf "Could not mount $partition.\n" >> $log
 	return 1
