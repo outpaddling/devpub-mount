@@ -171,6 +171,11 @@ try_mount()
 	media_manager $mount_point $partition udf 2>> $log
     else
 	printf "Could not mount $partition.\n" >> $log
+	# Notify user about normal partitions (sd0a, sd0b, ...) that
+	# cannot be mounted.
+	if echo $partition | grep -Eq "sd[0-9]+[a-z]+"; then
+	    media_manager $mount_point $partition "unknown"
+	fi
 	return 1
     fi
 }
