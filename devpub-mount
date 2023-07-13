@@ -118,7 +118,6 @@ media_manager()
     
     printf "cmd = $cmd\n" >> $log
     
-    # FIXME: Determine owner of :0
     display_users=$(ps aewwj | grep "DISPLAY=${DISPLAY_ID}" | awk '{ print $1 }' | sort -u)
     for user in $display_users; do
 	if su -l $user -c "env DISPLAY=$DISPLAY_ID $cmd"; then
